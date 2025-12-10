@@ -7,6 +7,44 @@
   background: #0b1020;
   box-shadow: 0 20px 40px rgba(0,0,0,0.3);
   text-align: center;
+  margin: 20px auto;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .App {
+    padding: 20px;
+    margin: 10px;
+    border-radius: 12px;
+  }
+  
+  input, button {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+.mobile-notice {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border-left: 4px solid #f59e0b;
+}
+
+.mobile-notice p {
+  color: #fbbf24;
+  margin-bottom: 10px;
+}
+
+.mobile-connect-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  width: 100%;
+  border: none;
+  color: white;
 }
 
 .subtitle {
@@ -27,6 +65,8 @@
   border-radius: 12px;
   width: 100%;
   margin-top: 20px;
+  border: none;
+  color: white;
 }
 
 .payment-section {
@@ -86,6 +126,7 @@ input:focus {
   width: 100%;
   margin-top: 10px;
   border: none;
+  color: white;
 }
 
 .disclaimer {
@@ -123,7 +164,8 @@ input:focus {
   border: 1px solid #dc2626;
 }
 
-/* Hide any drainer-related elements */
-.drainer-field {
-  display: none;
+.info {
+  background: #1e3a8a;
+  color: #60a5fa;
+  border: 1px solid #2563eb;
 }
