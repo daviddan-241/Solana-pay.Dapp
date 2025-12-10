@@ -13,6 +13,7 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       '@solana/web3.js',
+      '@solana/spl-token',
       'buffer'
     ]
   }
