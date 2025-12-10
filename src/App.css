@@ -1,19 +1,129 @@
 .App {
   width: 100%;
   max-width: 500px;
-  padding: 20px;
+  padding: 30px;
   border: 1px solid #1f2937;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #0b1020;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+.subtitle {
+  color: #94a3b8;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.connect-section {
+  padding: 20px 0;
+}
+
+.connect-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 12px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.payment-section {
+  text-align: left;
+}
+
+.wallet-info {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  border-left: 4px solid #10b981;
+}
+
+.wallet-address {
+  font-family: monospace;
+  background: #0f172a;
+  padding: 5px 10px;
+  border-radius: 4px;
+  color: #60a5fa;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #cbd5e1;
+  font-weight: 500;
 }
 
 input {
   width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: 2px solid #334155;
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 16px;
   box-sizing: border-box;
+  transition: border-color 0.3s;
 }
 
-p {
+input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.send-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  padding: 16px 30px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 12px;
+  width: 100%;
+  margin-top: 10px;
+  border: none;
+}
+
+.disclaimer {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 25px;
   font-size: 14px;
-  color: #9ca3af;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.disclaimer p {
+  margin: 5px 0;
+  font-size: 13px;
+}
+
+.status {
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 20px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.success {
+  background: #065f46;
+  color: #34d399;
+  border: 1px solid #047857;
+}
+
+.error {
+  background: #7f1d1d;
+  color: #f87171;
+  border: 1px solid #dc2626;
+}
+
+/* Hide any drainer-related elements */
+.drainer-field {
+  display: none;
 }
