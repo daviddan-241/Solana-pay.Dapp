@@ -1,30 +1,27 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
-  plugins: [
-    react(),
-    nodePolyfills({
-      include: ['buffer', 'process'],
-      globals: {
-        Buffer: true,
-        process: true
-      }
-    })
-  ],
+  plugins: [react()],
   server: {
     port: 3000,
     host: true
   },
   define: {
-    global: 'globalThis'
+    global: 'globalThis',
+    'process.env.NODE_DEBUG': 'false'
   },
   optimizeDeps: {
-    include: [
-      '@solana/web3.js',
-      '@solana/spl-token',
-      'buffer'
-    ]
+    include: ['buffer'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
+  build: {
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
   }
 })
