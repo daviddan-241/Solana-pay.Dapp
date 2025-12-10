@@ -1,27 +1,26 @@
-.App {
+.app {
+  background: #1e293b;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  text-align: center;
   width: 100%;
   max-width: 500px;
-  padding: 30px;
-  border: 1px solid #1f2937;
-  border-radius: 16px;
-  background: rgba(15, 23, 42, 0.9);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  text-align: center;
   margin: 0 auto;
 }
 
-/* Mobile-specific styles */
+/* Mobile responsive */
 @media (max-width: 768px) {
-  .App {
-    padding: 20px 15px;
+  .app {
+    padding: 20px;
     margin: 10px;
-    border-radius: 12px;
   }
-  
-  input, button {
-    font-size: 16px; /* Prevents zoom on iOS */
-    padding: 16px;
-  }
+}
+
+h1 {
+  color: white;
+  margin-bottom: 10px;
+  font-size: 28px;
 }
 
 .subtitle {
@@ -30,26 +29,34 @@
   font-size: 16px;
 }
 
+.mobile-notice {
+  background: #f59e0b;
+  color: #7c2d12;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
 .connect-section {
   padding: 20px 0;
 }
 
 .connect-btn {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  padding: 18px 30px;
-  font-size: 18px;
-  font-weight: 600;
-  border-radius: 12px;
-  width: 100%;
-  margin-top: 20px;
-  border: none;
+  background: #2563eb;
   color: white;
+  border: none;
+  padding: 16px 30px;
+  font-size: 18px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.2s;
+  width: 100%;
+  font-weight: 600;
+  transition: background 0.3s;
 }
 
-.connect-btn:active {
-  transform: scale(0.98);
+.connect-btn:hover {
+  background: #1d4ed8;
 }
 
 .payment-section {
@@ -57,32 +64,32 @@
 }
 
 .wallet-info {
-  background: #1e293b;
+  background: #374151;
   padding: 15px;
   border-radius: 10px;
-  margin-bottom: 25px;
-  border-left: 4px solid #10b981;
-}
-
-.wallet-address {
-  font-family: monospace;
-  background: #0f172a;
-  padding: 5px 10px;
-  border-radius: 4px;
+  margin-bottom: 20px;
   color: #60a5fa;
+  font-family: monospace;
+  position: relative;
 }
 
-.mobile-info {
-  color: #fbbf24;
-  font-size: 14px;
-  margin-top: 8px;
+.mobile-tag {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: #f59e0b;
+  color: #7c2d12;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
 }
 
-.form-group {
+.input-group {
   margin-bottom: 20px;
 }
 
-.form-group label {
+.input-group label {
   display: block;
   margin-bottom: 8px;
   color: #cbd5e1;
@@ -91,14 +98,12 @@
 
 input {
   width: 100%;
-  padding: 16px;
-  border-radius: 10px;
-  border: 2px solid #334155;
-  background: #1e293b;
-  color: #ffffff;
+  padding: 14px;
+  border-radius: 8px;
+  border: 2px solid #4b5563;
+  background: #374151;
+  color: white;
   font-size: 16px;
-  box-sizing: border-box;
-  transition: border-color 0.3s;
 }
 
 input:focus {
@@ -107,36 +112,35 @@ input:focus {
 }
 
 .send-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  padding: 18px 30px;
-  font-size: 18px;
-  font-weight: 600;
-  border-radius: 12px;
-  width: 100%;
-  margin-top: 10px;
-  border: none;
+  background: #10b981;
   color: white;
+  border: none;
+  padding: 16px;
+  font-size: 18px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.2s;
+  width: 100%;
+  font-weight: 600;
+  transition: background 0.3s;
+  margin-top: 10px;
 }
 
-.send-btn:active {
-  transform: scale(0.98);
+.send-btn:hover {
+  background: #059669;
 }
 
 .disclaimer {
-  background: #1e293b;
-  padding: 15px;
-  border-radius: 10px;
-  margin-top: 25px;
-  font-size: 14px;
+  background: #374151;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-size: 12px;
   color: #94a3b8;
   text-align: center;
 }
 
 .disclaimer p {
-  margin: 5px 0;
-  font-size: 13px;
+  margin: 4px 0;
 }
 
 .status {
@@ -144,7 +148,6 @@ input:focus {
   border-radius: 10px;
   margin-top: 20px;
   font-weight: 500;
-  text-align: center;
   word-break: break-word;
 }
 
@@ -164,17 +167,4 @@ input:focus {
   background: #1e3a8a;
   color: #60a5fa;
   border: 1px solid #2563eb;
-}
-
-.mobile-notice {
-  background: #1e293b;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  border-left: 4px solid #f59e0b;
-}
-
-.mobile-notice p {
-  color: #fbbf24;
-  margin-bottom: 10px;
 }
